@@ -1,4 +1,4 @@
-package com.example.marcos.bluetoothtest;
+package com.example.marcos.bluetoothtest.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;

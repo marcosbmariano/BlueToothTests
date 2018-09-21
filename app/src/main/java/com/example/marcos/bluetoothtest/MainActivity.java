@@ -11,14 +11,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.example.marcos.bluetoothtest.bluetooth.BluetoothHelper;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.example.marcos.bluetoothtest.BluetoothHelper.REQUEST_ENABLE_BTH;
+import static com.example.marcos.bluetoothtest.bluetooth.BluetoothHelper.REQUEST_ENABLE_BTH;
 
 public class MainActivity extends AppCompatActivity implements BluetoothHelper.BluetoothObserver,
         AdapterView.OnClickListener {
@@ -40,6 +41,10 @@ public class MainActivity extends AppCompatActivity implements BluetoothHelper.B
         // Example of a call to a native method
         TextView tv = (TextView) findViewById(R.id.sample_text);
         tv.setText(stringFromJNI());
+
+        long heapSize = Runtime.getRuntime().maxMemory();
+        Log.e(TAG, "Max Heap size: " + heapSize/(1024 * 8));
+
 
         setupViews();
         BluetoothHelper.setApplicationContext(this.getApplicationContext());
@@ -84,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothHelper.B
             case R.id.btn_client:
                 Log.e(TAG, "Connect Devices");
                 //mBTHHelper.connetToDevice(null);
+                connectToBTHDevice();
                 break;
             case R.id.btn_find_devices:
                 Log.e(TAG, "Find Devices");
@@ -97,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothHelper.B
 
             case R.id.btn_start_server:
                 Log.e(TAG, "Start As Server");
+                BluetoothHelper.getInstance().startBTHServer();
                 break;
             default:
                 //DO nothing
@@ -114,38 +121,34 @@ public class MainActivity extends AppCompatActivity implements BluetoothHelper.B
         }
     }
 
-    @Override
-    public void setPairedDevices(Set<BluetoothDevice> pairedDevices) {
+    private void connectToBTHDevice(){
+
+        BluetoothDevice device = mDevicesFound.get("98:0D:2E:CD:D3:53");
+        if(device != null){
+            Log.e(TAG, "Device found: " + device.getName());
+            mBTHHelper.connectToRemoteBTH(device);
+        }else{
+            Log.e(TAG, "EXPECTED DEVICE NOT FOUND!");
+        }
 
     }
 
     @Override
+    public void setPairedDevices(Set<BluetoothDevice> pairedDevices) {
+
+    }
+    private  Map<String, BluetoothDevice> mDevicesFound;
+    @Override
     public void setFoundDevices(Map<String, BluetoothDevice> devicesFound) {
         Log.e(TAG, "found devices");
+        mDevicesFound = devicesFound;
 
         Set<String> keys = devicesFound.keySet();
-        for(Iterator<String> i = keys.iterator(); i.hasNext(); ){
+        for( Iterator<String>i = keys.iterator(); i.hasNext(); ){
             String key = i.next();
-            BluetoothDevice device = devicesFound.get(key);
-
-            StringBuilder builder = new StringBuilder();
-            ParcelUuid [] uuids = device.getUuids();
-            if( uuids != null ){
-                for(int z = 0; z < uuids.length; z++ ){
-                    UUID uuid = uuids[z].getUuid();
-                    if( uuid != null){
-                        builder.append(uuid.toString() + "\n");
-                    }
-                    uuid = null;
-                }
-            }
-
-            Log.e(TAG, "Device Address: " + device.getAddress()
-                    + ", Device name " + device.getName() +
-                    " Device UUID " + builder.toString());
-
+            BluetoothDevice  device = devicesFound.get(key);
+            Log.e(TAG, "Device name: " + device.getName() + " device address " + key );
         }
-
     }
 
 
